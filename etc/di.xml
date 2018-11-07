@@ -1,0 +1,206 @@
+<?xml version="1.0"?>
+<!-- 
+/**
+ * PostFinance Checkout Magento 2
+ *
+ * This Magento 2 extension enables to process payments with PostFinance Checkout (https://www.postfinance.ch/).
+ *
+ * @package PostFinanceCheckout_Payment
+ * @author customweb GmbH (http://www.customweb.com/)
+ * @license http://www.apache.org/licenses/LICENSE-2.0  Apache Software License (ASL 2.0)
+ */
+ -->
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+	<preference for="PostFinanceCheckout\Payment\Api\PaymentMethodConfigurationRepositoryInterface" type="PostFinanceCheckout\Payment\Model\PaymentMethodConfigurationRepository" />
+	<preference for="PostFinanceCheckout\Payment\Api\PaymentMethodConfigurationManagementInterface" type="PostFinanceCheckout\Payment\Model\PaymentMethodConfigurationManagement" />
+	<preference for="PostFinanceCheckout\Payment\Api\Data\PaymentMethodConfigurationInterface" type="PostFinanceCheckout\Payment\Model\PaymentMethodConfiguration" />
+	<preference for="PostFinanceCheckout\Payment\Api\Data\PaymentMethodConfigurationSearchResultsInterface" type="Magento\Framework\Api\SearchResults" />
+	<preference for="PostFinanceCheckout\Payment\Api\TransactionInfoRepositoryInterface" type="PostFinanceCheckout\Payment\Model\TransactionInfoRepository" />
+	<preference for="PostFinanceCheckout\Payment\Api\TransactionInfoManagementInterface" type="PostFinanceCheckout\Payment\Model\TransactionInfoManagement" />
+	<preference for="PostFinanceCheckout\Payment\Api\Data\TransactionInfoInterface" type="PostFinanceCheckout\Payment\Model\TransactionInfo" />
+	<preference for="PostFinanceCheckout\Payment\Api\Data\TransactionInfoSearchResultsInterface" type="Magento\Framework\Api\SearchResults" />
+	<preference for="PostFinanceCheckout\Payment\Api\TokenInfoRepositoryInterface" type="PostFinanceCheckout\Payment\Model\TokenInfoRepository" />
+	<preference for="PostFinanceCheckout\Payment\Api\TokenInfoManagementInterface" type="PostFinanceCheckout\Payment\Model\TokenInfoManagement" />
+	<preference for="PostFinanceCheckout\Payment\Api\Data\TokenInfoInterface" type="PostFinanceCheckout\Payment\Model\TokenInfo" />
+	<preference for="PostFinanceCheckout\Payment\Api\Data\TokenInfoSearchResultsInterface" type="Magento\Framework\Api\SearchResults" />
+	<preference for="PostFinanceCheckout\Payment\Api\RefundJobRepositoryInterface" type="PostFinanceCheckout\Payment\Model\RefundJobRepository" />
+	<preference for="PostFinanceCheckout\Payment\Api\Data\RefundJobInterface" type="PostFinanceCheckout\Payment\Model\RefundJob" />
+	<preference for="PostFinanceCheckout\Payment\Api\Data\RefundJobSearchResultsInterface" type="Magento\Framework\Api\SearchResults" />
+	
+	<type name="PostFinanceCheckout\Payment\Model\ResourceModel\TokenInfo\Collection\Grid">
+        <arguments>
+            <argument name="resource" xsi:type="object">PostFinanceCheckout\Payment\Model\ResourceModel\TokenInfo</argument>
+        </arguments>
+    </type>
+	
+	<type name="PostFinanceCheckout\Payment\Model\Config\Structure\Reader">
+        <arguments>
+            <argument name="compiler" xsi:type="object">Magento\Framework\View\TemplateEngine\Xhtml\ConfigCompiler</argument>
+        </arguments>
+    </type>
+    
+    <type name="PostFinanceCheckout\Payment\Model\Service\WebhookService">
+    	<arguments>
+    		<argument name="webhookListenerPool" xsi:type="object">PostFinanceCheckoutWebhookListenerPool</argument>
+	        <argument name="urlBuilder" xsi:type="object">Magento\Framework\Url</argument>
+	    </arguments>
+	</type>
+    
+    <!-- Providers -->
+    <type name="PostFinanceCheckout\Payment\Model\Provider\PaymentMethodProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Magento\Framework\App\Cache\Type\Config</argument>
+        </arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Provider\PaymentConnectorProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Magento\Framework\App\Cache\Type\Config</argument>
+        </arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Provider\LanguageProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Magento\Framework\App\Cache\Type\Config</argument>
+        </arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Provider\LabelDescriptorProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Magento\Framework\App\Cache\Type\Config</argument>
+        </arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Provider\LabelDescriptorGroupProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Magento\Framework\App\Cache\Type\Config</argument>
+        </arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Provider\CurrencyProvider">
+        <arguments>
+            <argument name="cache" xsi:type="object">Magento\Framework\App\Cache\Type\Config</argument>
+        </arguments>
+    </type>
+    
+    <!-- Webhook Listeners -->
+    <type name="PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionListener">
+    	<arguments>
+    		<argument name="commandPool" xsi:type="object">PostFinanceCheckoutTransactionWebhookCommandPool</argument>
+    	</arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionInvoiceListener">
+    	<arguments>
+    		<argument name="commandPool" xsi:type="object">PostFinanceCheckoutTransactionInvoiceWebhookCommandPool</argument>
+    	</arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Webhook\Listener\DeliveryIndicationListener">
+    	<arguments>
+    		<argument name="commandPool" xsi:type="object">PostFinanceCheckoutDeliveryIndicationWebhookCommandPool</argument>
+    	</arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionCompletionListener">
+    	<arguments>
+    		<argument name="commandPool" xsi:type="object">PostFinanceCheckoutTransactionCompletionWebhookCommandPool</argument>
+    	</arguments>
+    </type>
+    <type name="PostFinanceCheckout\Payment\Model\Webhook\Listener\RefundListener">
+    	<arguments>
+    		<argument name="commandPool" xsi:type="object">PostFinanceCheckoutRefundWebhookCommandPool</argument>
+    	</arguments>
+    </type>
+    
+    <!-- Webhook Listener Pools -->
+    <virtualType name="PostFinanceCheckoutWebhookListenerPool" type="PostFinanceCheckout\Payment\Model\Webhook\ListenerPool">
+    	<arguments>
+            <argument name="listeners" xsi:type="array">
+            	<item name="transaction" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionListener</item>
+            	<item name="transactioninvoice" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionInvoiceListener</item>
+            	<item name="deliveryindication" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\DeliveryIndicationListener</item>
+            	<item name="transactioncompletion" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionCompletionListener</item>
+            	<item name="refund" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\RefundListener</item>
+            	<item name="paymentmethodconfiguration" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\PaymentMethodConfigurationListener</item>
+            	<item name="manualtask" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\ManualTaskListener</item>
+            	<item name="token" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TokenListener</item>
+            	<item name="tokenversion" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TokenVersionListener</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PostFinanceCheckoutTransactionWebhookCommandPool" type="PostFinanceCheckout\Payment\Model\Webhook\Listener\CommandPool">
+    	<arguments>
+            <argument name="commands" xsi:type="array">
+            	<item name="authorized" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\Transaction\AuthorizedCommand</item>
+            	<item name="fulfill" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\Transaction\FulfillCommand</item>
+            	<item name="decline" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\Transaction\DeclineCommand</item>
+            	<item name="failed" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\Transaction\FailedCommand</item>
+            	<item name="voided" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\Transaction\VoidedCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PostFinanceCheckoutTransactionInvoiceWebhookCommandPool" type="PostFinanceCheckout\Payment\Model\Webhook\Listener\CommandPool">
+    	<arguments>
+            <argument name="commands" xsi:type="array">
+            	<item name="paid" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionInvoice\CaptureCommand</item>
+            	<item name="not_applicable" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionInvoice\CaptureCommand</item>
+            	<item name="derecognized" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionInvoice\DerecognizedCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PostFinanceCheckoutDeliveryIndicationWebhookCommandPool" type="PostFinanceCheckout\Payment\Model\Webhook\Listener\CommandPool">
+    	<arguments>
+            <argument name="commands" xsi:type="array">
+            	<item name="manual_check_required" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\DeliveryIndication\ManualCheckRequiredCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PostFinanceCheckoutTransactionCompletionWebhookCommandPool" type="PostFinanceCheckout\Payment\Model\Webhook\Listener\CommandPool">
+    	<arguments>
+            <argument name="commands" xsi:type="array">
+            	<item name="failed" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionCompletion\FailedCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PostFinanceCheckoutRefundWebhookCommandPool" type="PostFinanceCheckout\Payment\Model\Webhook\Listener\CommandPool">
+    	<arguments>
+            <argument name="commands" xsi:type="array">
+            	<item name="successful" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\Refund\SuccessfulCommand</item>
+            	<item name="failed" xsi:type="string">PostFinanceCheckout\Payment\Model\Webhook\Listener\Refund\FailedCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    
+    <!-- Payment Gateway -->
+    <virtualType name="PostFinanceCheckoutPaymentGatewayCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
+        <arguments>
+            <argument name="commands" xsi:type="array">
+                <item name="initialize" xsi:type="string">PostFinanceCheckout\Payment\Gateway\Command\InitializeCommand</item>
+                <item name="capture" xsi:type="string">PostFinanceCheckout\Payment\Gateway\Command\CaptureCommand</item>
+                <item name="void" xsi:type="string">PostFinanceCheckout\Payment\Gateway\Command\VoidCommand</item>
+                <item name="refund" xsi:type="string">PostFinanceCheckout\Payment\Gateway\Command\RefundCommand</item>
+                <item name="cancel" xsi:type="string">PostFinanceCheckout\Payment\Gateway\Command\VoidCommand</item>
+                <item name="accept_payment" xsi:type="string">PostFinanceCheckout\Payment\Gateway\Command\AcceptPaymentCommand</item>
+                <item name="deny_payment" xsi:type="string">PostFinanceCheckout\Payment\Gateway\Command\DenyPaymentCommand</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PostFinanceCheckoutPaymentGatewayValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
+    	<arguments>
+            <argument name="validators" xsi:type="array"></argument>
+        </arguments>
+    </virtualType>
+    
+	<!-- Plugins/Interceptors -->
+	<type name="Magento\Config\Model\Config\Structure\Converter">
+		<plugin name="postfinancecheckout_payment_config_structure_converter" type="PostFinanceCheckout\Payment\Plugin\Config\Model\Config\Structure\Converter" />
+	</type>
+	<type name="Magento\Framework\App\Config\Initial\Converter">
+		<plugin name="postfinancecheckout_payment_config_initial_converter" type="PostFinanceCheckout\Payment\Plugin\Framework\App\Config\Initial\Converter" />
+	</type>
+	<type name="Magento\Payment\Model\Config\Reader">
+		<plugin name="postfinancecheckout_payment_payment_config_reader" type="PostFinanceCheckout\Payment\Plugin\Payment\Model\Config\Reader" />
+	</type>
+	<type name="Magento\Payment\Model\Method\Factory">
+		<plugin name="postfinancecheckout_payment_payment_method_factory" type="PostFinanceCheckout\Payment\Plugin\Payment\Model\Method\Factory" />
+	</type>
+	<type name="Magento\Checkout\Block\Checkout\LayoutProcessor">
+		<plugin name="postfinancecheckout_payment_checkout_layout_processor" type="PostFinanceCheckout\Payment\Plugin\Checkout\Block\Checkout\LayoutProcessor" />
+	</type>
+	<type name="Magento\Sales\Model\Service\CreditmemoService">
+		<plugin name="postfinancecheckout_payment_sales_creditmemo_service" type="PostFinanceCheckout\Payment\Plugin\Sales\Model\Service\CreditmemoService" />
+	</type>
+</config>

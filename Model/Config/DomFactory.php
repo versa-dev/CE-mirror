@@ -1,0 +1,49 @@
+<?php
+/**
+ * PostFinance Checkout Magento 2
+ *
+ * This Magento 2 extension enables to process payments with PostFinance Checkout (https://www.postfinance.ch/).
+ *
+ * @package PostFinanceCheckout_Payment
+ * @author customweb GmbH (http://www.customweb.com/)
+ * @license http://www.apache.org/licenses/LICENSE-2.0  Apache Software License (ASL 2.0)
+ */
+namespace PostFinanceCheckout\Payment\Model\Config;
+
+use Magento\Framework\ObjectManagerInterface;
+
+/**
+ * Factory to create DOM objects.
+ */
+class DomFactory
+{
+
+    const CLASS_NAME = Dom::class;
+
+    /**
+     * Object manager
+     *
+     * @var ObjectManagerInterface
+     */
+    protected $_objectManager;
+
+    /**
+     *
+     * @param ObjectManagerInterface $objectManger
+     */
+    public function __construct(ObjectManagerInterface $objectManger)
+    {
+        $this->_objectManager = $objectManger;
+    }
+
+    /**
+     * Create DOM object
+     *
+     * @param array $arguments
+     * @return Dom
+     */
+    public function createDom(array $arguments = [])
+    {
+        return $this->_objectManager->create(self::CLASS_NAME, $arguments);
+    }
+}
