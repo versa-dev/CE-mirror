@@ -20,6 +20,7 @@ use PostFinanceCheckout\Payment\Api\PaymentMethodConfigurationManagementInterfac
 use PostFinanceCheckout\Payment\Helper\Data as Helper;
 use PostFinanceCheckout\Payment\Model\ApiClient;
 use PostFinanceCheckout\Payment\Model\Service\AbstractTransactionService;
+use PostFinanceCheckout\Sdk\ApiException;
 use PostFinanceCheckout\Sdk\VersioningException;
 use PostFinanceCheckout\Sdk\Model\AbstractTransactionPending;
 use PostFinanceCheckout\Sdk\Model\AddressCreate;
@@ -111,8 +112,13 @@ class TransactionService extends AbstractTransactionService
         if (! array_key_exists($quote->getId(), $this->possiblePaymentMethodCache) ||
             $this->possiblePaymentMethodCache[$quote->getId()] == null) {
             $transaction = $this->getTransactionByQuote($quote);
-            $paymentMethods = $this->_apiClient->getService(TransactionApiService::class)->fetchPossiblePaymentMethods(
-                $transaction->getLinkedSpaceId(), $transaction->getId());
+            try {
+                $paymentMethods = $this->_apiClient->getService(TransactionApiService::class)->fetchPossiblePaymentMethods(
+                    $transaction->getLinkedSpaceId(), $transaction->getId());
+            } catch (ApiException $e) {
+                $this->possiblePaymentMethodCache[$quote->getId()] = [];
+                throw $e;
+            }
             $this->updatePaymentMethodConfigurations($paymentMethods);
             $this->possiblePaymentMethodCache[$quote->getId()] = $paymentMethods;
         }
