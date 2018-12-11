@@ -21,6 +21,7 @@ use PostFinanceCheckout\Payment\Helper\Data as Helper;
 use PostFinanceCheckout\Payment\Helper\LineItem as LineItemHelper;
 use PostFinanceCheckout\Payment\Model\Service\AbstractLineItemService;
 use PostFinanceCheckout\Sdk\Model\LineItemAttributeCreate;
+use PostFinanceCheckout\Sdk\Model\TaxCreate;
 
 /**
  * Service to handle line items in invoice context.
@@ -86,6 +87,29 @@ class LineItemService extends AbstractLineItemService
     }
 
     /**
+     * Gets the tax for the given invoice item.
+     *
+     * @param Invoice\Item $entityItem
+     * @return TaxCreate
+     */
+    protected function getTax($entityItem)
+    {
+        if ($entityItem->getTaxAmount() > 0 && $entityItem->getOrderItem()->getTaxPercent() > 0) {
+            $taxClassId = $entityItem->getOrderItem()->getProduct()->getTaxClassId();
+            if ($taxClassId > 0) {
+                $taxClass = $this->_taxClassRepository->get($taxClassId);
+
+                $tax = new TaxCreate();
+                $tax->setRate($entityItem->getOrderItem()->getTaxPercent());
+                $tax->setTitle($taxClass->getClassName());
+                return $tax;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Converts the invoice's shipping information to a line item.
      *
      * @param Invoice $invoice
@@ -93,7 +117,10 @@ class LineItemService extends AbstractLineItemService
      */
     protected function convertShippingLineItem($invoice)
     {
-        return $this->convertShippingLineItemInner($invoice, $invoice->getShippingInclTax(),
+        return $this->convertShippingLineItemInner($invoice, $invoice->getShippingAmount(),
+            $invoice->getShippingTaxAmount(),
+            $invoice->getOrder()
+                ->getShippingDiscountAmount() - $invoice->getShippingDiscountTaxCompensationAmount(),
             $invoice->getOrder()
                 ->getShippingDescription());
     }
