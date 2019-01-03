@@ -10,11 +10,8 @@
  */
 namespace PostFinanceCheckout\Payment\Model\Webhook\Listener;
 
-use Magento\Framework\DB\TransactionFactory as DBTransactionFactory;
-use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
-use Magento\Sales\Model\Order\Email\Sender\OrderSender as OrderEmailSender;
 use PostFinanceCheckout\Sdk\Model\Transaction;
 
 /**
@@ -22,50 +19,6 @@ use PostFinanceCheckout\Sdk\Model\Transaction;
  */
 abstract class AbstractOrderRelatedCommand implements CommandInterface
 {
-
-    /**
-     *
-     * @var DBTransactionFactory
-     */
-    protected $_dbTransactionFactory;
-
-    /**
-     *
-     * @var OrderRepositoryInterface
-     */
-    protected $_orderRepository;
-
-    /**
-     *
-     * @var OrderEmailSender
-     */
-    protected $_orderEmailSender;
-
-    /**
-     *
-     * @param DBTransactionFactory $dbTransactionFactory
-     * @param OrderRepositoryInterface $orderRepository
-     * @param OrderEmailSender $orderEmailSender
-     */
-    public function __construct(DBTransactionFactory $dbTransactionFactory, OrderRepositoryInterface $orderRepository,
-        OrderEmailSender $orderEmailSender)
-    {
-        $this->_dbTransactionFactory = $dbTransactionFactory;
-        $this->_orderRepository = $orderRepository;
-        $this->_orderEmailSender = $orderEmailSender;
-    }
-
-    /**
-     * Sends the order email if not already sent.
-     *
-     * @param Order $order
-     */
-    protected function sendOrderEmail(Order $order)
-    {
-        if ($order->getStore()->getConfig('postfinancecheckout_payment/email/order') && ! $order->getEmailSent()) {
-            $this->_orderEmailSender->send($order);
-        }
-    }
 
     /**
      * Gets the invoice linked to the given transaction.

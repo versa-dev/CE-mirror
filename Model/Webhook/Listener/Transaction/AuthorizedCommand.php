@@ -10,7 +10,9 @@
  */
 namespace PostFinanceCheckout\Payment\Model\Webhook\Listener\Transaction;
 
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Email\Sender\OrderSender as OrderEmailSender;
 use PostFinanceCheckout\Sdk\Model\TransactionState;
 
 /**
@@ -18,6 +20,29 @@ use PostFinanceCheckout\Sdk\Model\TransactionState;
  */
 class AuthorizedCommand extends AbstractCommand
 {
+
+    /**
+     *
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
+     *
+     * @var OrderEmailSender
+     */
+    private $orderEmailSender;
+
+    /**
+     *
+     * @param OrderRepositoryInterface $orderRepository
+     * @param OrderEmailSender $orderEmailSender
+     */
+    public function __construct(OrderRepositoryInterface $orderRepository, OrderEmailSender $orderEmailSender)
+    {
+        $this->orderRepository = $orderRepository;
+        $this->orderEmailSender = $orderEmailSender;
+    }
 
     /**
      *
@@ -44,8 +69,20 @@ class AuthorizedCommand extends AbstractCommand
         }
 
         $order->setPostfinancecheckoutAuthorized(true);
-        $this->_orderRepository->save($order);
+        $this->orderRepository->save($order);
 
         $this->sendOrderEmail($order);
+    }
+
+    /**
+     * Sends the order email if not already sent.
+     *
+     * @param Order $order
+     */
+    private function sendOrderEmail(Order $order)
+    {
+        if ($order->getStore()->getConfig('postfinancecheckout_payment/email/order') && ! $order->getEmailSent()) {
+            $this->orderEmailSender->send($order);
+        }
     }
 }

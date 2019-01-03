@@ -10,8 +10,10 @@
  */
 namespace PostFinanceCheckout\Payment\Model\Webhook\Listener\TransactionInvoice;
 
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\Email\Sender\OrderSender as OrderEmailSender;
 use PostFinanceCheckout\Sdk\Model\Transaction;
 use PostFinanceCheckout\Sdk\Model\TransactionState;
 
@@ -20,6 +22,29 @@ use PostFinanceCheckout\Sdk\Model\TransactionState;
  */
 class CaptureCommand extends AbstractCommand
 {
+
+    /**
+     *
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
+     *
+     * @var OrderEmailSender
+     */
+    private $orderEmailSender;
+
+    /**
+     *
+     * @param OrderRepositoryInterface $orderRepository
+     * @param OrderEmailSender $orderEmailSender
+     */
+    public function __construct(OrderRepositoryInterface $orderRepository, OrderEmailSender $orderEmailSender)
+    {
+        $this->orderRepository = $orderRepository;
+        $this->orderEmailSender = $orderEmailSender;
+    }
 
     /**
      *
@@ -59,12 +84,12 @@ class CaptureCommand extends AbstractCommand
                 $order->addStatusToHistory(true);
             }
 
-            $this->_orderRepository->save($order);
+            $this->orderRepository->save($order);
             $this->sendOrderEmail($order);
         }
     }
 
-    protected function createInvoice(Transaction $transaction, Order $order)
+    private function createInvoice(Transaction $transaction, Order $order)
     {
         $invoice = $order->prepareInvoice();
         $invoice->register();
@@ -72,5 +97,17 @@ class CaptureCommand extends AbstractCommand
             $order->getPostfinancecheckoutSpaceId() . '_' . $order->getPostfinancecheckoutTransactionId());
         $order->addRelatedObject($invoice);
         return $invoice;
+    }
+
+    /**
+     * Sends the order email if not already sent.
+     *
+     * @param Order $order
+     */
+    private function sendOrderEmail(Order $order)
+    {
+        if ($order->getStore()->getConfig('postfinancecheckout_payment/email/order') && ! $order->getEmailSent()) {
+            $this->orderEmailSender->send($order);
+        }
     }
 }

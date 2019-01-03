@@ -31,31 +31,31 @@ class SubmitQuote implements ObserverInterface
      *
      * @var DBTransactionFactory
      */
-    protected $_dbTransactionFactory;
+    private $dbTransactionFactory;
 
     /**
      *
      * @var Helper
      */
-    protected $_helper;
+    private $helper;
 
     /**
      *
      * @var TransactionService
      */
-    protected $_transactionService;
+    private $transactionService;
 
     /**
      *
      * @var TransactionInfoManagementInterface
      */
-    protected $_transactionInfoManagement;
+    private $transactionInfoManagement;
 
     /**
      *
      * @var ApiClient
      */
-    protected $_apiClient;
+    private $apiClient;
 
     /**
      *
@@ -69,11 +69,11 @@ class SubmitQuote implements ObserverInterface
         TransactionService $transactionService, TransactionInfoManagementInterface $transactionInfoManagement,
         ApiClient $apiClient)
     {
-        $this->_dbTransactionFactory = $dbTransactionFactory;
-        $this->_helper = $helper;
-        $this->_transactionService = $transactionService;
-        $this->_transactionInfoManagement = $transactionInfoManagement;
-        $this->_apiClient = $apiClient;
+        $this->dbTransactionFactory = $dbTransactionFactory;
+        $this->helper = $helper;
+        $this->transactionService = $transactionService;
+        $this->transactionInfoManagement = $transactionInfoManagement;
+        $this->apiClient = $apiClient;
     }
 
     public function execute(Observer $observer)
@@ -85,17 +85,17 @@ class SubmitQuote implements ObserverInterface
         if (! empty($transactionId)) {
             $invoice = $this->createInvoice($order);
 
-            $transaction = $this->_transactionService->confirmTransaction($order, $invoice,
-                $this->_helper->isAdminArea(), $order->getPostfinancecheckoutToken());
-            $this->_transactionInfoManagement->update($transaction, $order);
+            $transaction = $this->transactionService->confirmTransaction($order, $invoice,
+                $this->helper->isAdminArea(), $order->getPostfinancecheckoutToken());
+            $this->transactionInfoManagement->update($transaction, $order);
         }
 
-        if ($order->getPostfinancecheckoutChargeFlow() && $this->_helper->isAdminArea()) {
-            $this->_apiClient->getService(ChargeFlowService::class)->applyFlow(
+        if ($order->getPostfinancecheckoutChargeFlow() && $this->helper->isAdminArea()) {
+            $this->apiClient->getService(ChargeFlowService::class)->applyFlow(
                 $order->getPostfinancecheckoutSpaceId(), $order->getPostfinancecheckoutTransactionId());
 
             if ($order->getPostfinancecheckoutToken() != null) {
-                $this->_transactionService->waitForTransactionState($order,
+                $this->transactionService->waitForTransactionState($order,
                     [
                         TransactionState::AUTHORIZED,
                         TransactionState::COMPLETED,
@@ -120,7 +120,7 @@ class SubmitQuote implements ObserverInterface
         $invoice->setTransactionId(
             $order->getPostfinancecheckoutSpaceId() . '_' . $order->getPostfinancecheckoutTransactionId());
 
-        $this->_dbTransactionFactory->create()
+        $this->dbTransactionFactory->create()
             ->addObject($order)
             ->addObject($invoice)
             ->save();
