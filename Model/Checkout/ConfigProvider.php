@@ -15,6 +15,7 @@ use Magento\Checkout\Model\Session\Proxy as CheckoutSession;
 use Magento\Framework\Api\FilterBuilder;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\Api\Search\FilterGroupBuilder;
+use Psr\Log\LoggerInterface;
 use PostFinanceCheckout\Payment\Api\PaymentMethodConfigurationRepositoryInterface;
 use PostFinanceCheckout\Payment\Api\Data\PaymentMethodConfigurationInterface;
 use PostFinanceCheckout\Payment\Model\PaymentMethodConfiguration;
@@ -64,16 +65,24 @@ class ConfigProvider implements ConfigProviderInterface
 
     /**
      *
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
+     *
      * @param PaymentMethodConfigurationRepositoryInterface $paymentMethodConfigurationRepository
      * @param TransactionService $transactionService
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param FilterBuilder $filterBuilder
      * @param FilterGroupBuilder $filterGroupBuilder
      * @param CheckoutSession $checkoutSession
+     * @param LoggerInterface $logger
      */
     public function __construct(PaymentMethodConfigurationRepositoryInterface $paymentMethodConfigurationRepository,
         TransactionService $transactionService, SearchCriteriaBuilder $searchCriteriaBuilder,
-        FilterBuilder $filterBuilder, FilterGroupBuilder $filterGroupBuilder, CheckoutSession $checkoutSession)
+        FilterBuilder $filterBuilder, FilterGroupBuilder $filterGroupBuilder, CheckoutSession $checkoutSession,
+        LoggerInterface $logger)
     {
         $this->paymentMethodConfigurationRepository = $paymentMethodConfigurationRepository;
         $this->transactionService = $transactionService;
@@ -81,6 +90,7 @@ class ConfigProvider implements ConfigProviderInterface
         $this->filterBuilder = $filterBuilder;
         $this->filterGroupBuilder = $filterGroupBuilder;
         $this->checkoutSession = $checkoutSession;
+        $this->logger = $logger;
     }
 
     public function getConfig()
@@ -90,15 +100,21 @@ class ConfigProvider implements ConfigProviderInterface
             'postfinancecheckout' => []
         ];
 
+        /* @var \Magento\Quote\Model\Quote $quote */
+        $quote = $this->checkoutSession->getQuote();
+        // Make sure that the quote's totals are collected before generating javascript and payment page URLs.
+        $quote->collectTotals();
         try {
-            $config['postfinancecheckout']['javascriptUrl'] = $this->transactionService->getJavaScriptUrl(
-                $this->checkoutSession->getQuote());
-        } catch (\Exception $e) {}
+            $config['postfinancecheckout']['javascriptUrl'] = $this->transactionService->getJavaScriptUrl($quote);
+        } catch (\Exception $e) {
+            $this->logger->critical($e);
+        }
 
         try {
-            $config['postfinancecheckout']['paymentPageUrl'] = $this->transactionService->getPaymentPageUrl(
-                $this->checkoutSession->getQuote());
-        } catch (\Exception $e) {}
+            $config['postfinancecheckout']['paymentPageUrl'] = $this->transactionService->getPaymentPageUrl($quote);
+        } catch (\Exception $e) {
+            $this->logger->critical($e);
+        }
 
         $stateFilter = $this->filterBuilder->setConditionType('in')
             ->setField(PaymentMethodConfigurationInterface::STATE)
