@@ -47,13 +47,13 @@ abstract class Transaction extends \Magento\Framework\App\Action\Action
     {
         $orderId = $this->getRequest()->getParam('order_id');
         if (empty($orderId)) {
-            throw new LocalizedException('The order ID has been provided.');
+            throw new LocalizedException(\__('The order ID has been provided.'));
         }
         $order = $this->orderRepository->get($orderId);
 
         $token = $order->getPostfinancecheckoutSecurityToken();
         if (empty($token) || $token != $this->getRequest()->getParam('token')) {
-            throw new LocalizedException('The PostFinance Checkout security token is invalid.');
+            throw new LocalizedException(\__('The PostFinance Checkout security token is invalid.'));
         }
 
         return $order;

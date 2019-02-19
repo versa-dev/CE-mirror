@@ -240,7 +240,7 @@ class TransactionService extends AbstractTransactionService
         $token = $order->getPostfinancecheckoutSecurityToken();
         if (empty($token)) {
             throw new LocalizedException(
-                'The PostFinance Checkout security token needs to be set on the order to build the URL.');
+                \__('The PostFinance Checkout security token needs to be set on the order to build the URL.'));
         }
 
         return $order->getStore()->getUrl($route,
