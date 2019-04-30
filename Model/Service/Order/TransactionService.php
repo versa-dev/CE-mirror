@@ -29,11 +29,15 @@ use PostFinanceCheckout\Payment\Model\Service\AbstractTransactionService;
 use PostFinanceCheckout\Sdk\VersioningException;
 use PostFinanceCheckout\Sdk\Model\AbstractTransactionPending;
 use PostFinanceCheckout\Sdk\Model\AddressCreate;
+use PostFinanceCheckout\Sdk\Model\CriteriaOperator;
 use PostFinanceCheckout\Sdk\Model\CustomersPresence;
 use PostFinanceCheckout\Sdk\Model\EntityQuery;
+use PostFinanceCheckout\Sdk\Model\EntityQueryFilter;
+use PostFinanceCheckout\Sdk\Model\EntityQueryFilterType;
 use PostFinanceCheckout\Sdk\Model\Token;
 use PostFinanceCheckout\Sdk\Model\Transaction;
 use PostFinanceCheckout\Sdk\Model\TransactionCreate;
+use PostFinanceCheckout\Sdk\Model\TransactionInvoiceState;
 use PostFinanceCheckout\Sdk\Model\TransactionPending;
 use PostFinanceCheckout\Sdk\Model\TransactionState;
 use PostFinanceCheckout\Sdk\Service\DeliveryIndicationService;
@@ -219,8 +223,10 @@ class TransactionService extends AbstractTransactionService
                         ->getConfigurationId()
                 ]);
         } else {
-            $transaction->setSuccessUrl($this->buildUrl('postfinancecheckout_payment/transaction/success', $order) . '?utm_nooverride=1');
-            $transaction->setFailedUrl($this->buildUrl('postfinancecheckout_payment/transaction/failure', $order) . '?utm_nooverride=1');
+            $transaction->setSuccessUrl(
+                $this->buildUrl('postfinancecheckout_payment/transaction/success', $order) . '?utm_nooverride=1');
+            $transaction->setFailedUrl(
+                $this->buildUrl('postfinancecheckout_payment/transaction/failure', $order) . '?utm_nooverride=1');
         }
         if ($token != null) {
             $transaction->setToken($token->getId());
@@ -391,14 +397,21 @@ class TransactionService extends AbstractTransactionService
     public function getTransactionInvoice(Order $order)
     {
         $query = new EntityQuery();
+        $filter = new EntityQueryFilter();
+        $filter->setType(EntityQueryFilterType::_AND);
+        $filter->setChildren(
+            [
+                $this->helper->createEntityFilter('state', TransactionInvoiceState::CANCELED,
+                    CriteriaOperator::NOT_EQUALS),
+                $this->helper->createEntityFilter('completion.lineItemVersion.transaction.id',
+                    $order->getPostfinancecheckoutTransactionId())
+            ]);
+        $query->setFilter($filter);
         $query->setNumberOfEntities(1);
-        $query->setFilter(
-            $this->helper->createEntityFilter('completion.lineItemVersion.transaction.id',
-                $order->getPostfinancecheckoutTransactionId()));
         $result = $this->apiClient->getService(TransactionInvoiceService::class)->search(
             $order->getPostfinancecheckoutSpaceId(), $query);
         if (! empty($result)) {
-            return \current($result);
+            return $result[0];
         } else {
             throw new NoSuchEntityException();
         }

@@ -20,8 +20,10 @@ use Magento\Sales\Model\Order\Invoice;
 use PostFinanceCheckout\Payment\Api\RefundJobRepositoryInterface;
 use PostFinanceCheckout\Payment\Helper\Data as Helper;
 use PostFinanceCheckout\Payment\Model\Service\LineItemReductionService;
+use PostFinanceCheckout\Payment\Model\Service\Order\TransactionService;
 use PostFinanceCheckout\Sdk\Model\LineItemType;
 use PostFinanceCheckout\Sdk\Model\Refund;
+use PostFinanceCheckout\Sdk\Model\TransactionInvoiceState;
 
 /**
  * Webhook listener command to handle successful refunds.
@@ -67,6 +69,12 @@ class SuccessfulCommand extends AbstractCommand
 
     /**
      *
+     * @var TransactionService
+     */
+    private $transactionService;
+
+    /**
+     *
      * @var Helper
      */
     private $helper;
@@ -79,12 +87,13 @@ class SuccessfulCommand extends AbstractCommand
      * @param CreditmemoManagementInterface $creditmemoManagement
      * @param InvoiceRepositoryInterface $invoiceRepository
      * @param LineItemReductionService $lineItemReductionService
+     * @param TransactionService $transactionService
      * @param Helper $helper
      */
     public function __construct(RefundJobRepositoryInterface $refundJobRepository,
         CreditmemoRepositoryInterface $creditmemoRepository, CreditmemoFactory $creditmemoFactory,
         CreditmemoManagementInterface $creditmemoManagement, InvoiceRepositoryInterface $invoiceRepository,
-        LineItemReductionService $lineItemReductionService, Helper $helper)
+        LineItemReductionService $lineItemReductionService, TransactionService $transactionService, Helper $helper)
     {
         parent::__construct($refundJobRepository);
         $this->refundJobRepository = $refundJobRepository;
@@ -93,6 +102,7 @@ class SuccessfulCommand extends AbstractCommand
         $this->creditmemoManagement = $creditmemoManagement;
         $this->invoiceRepository = $invoiceRepository;
         $this->lineItemReductionService = $lineItemReductionService;
+        $this->transactionService = $transactionService;
         $this->helper = $helper;
     }
 
@@ -103,6 +113,10 @@ class SuccessfulCommand extends AbstractCommand
      */
     public function execute($entity, Order $order)
     {
+        if ($this->isDerecognizedInvoice($entity, $order)) {
+            return;
+        }
+
         /** @var \Magento\Sales\Model\Order\Creditmemo $creditmemo */
         $creditmemo = $this->creditmemoRepository->create()->load($entity->getExternalId(),
             'postfinancecheckout_external_id');
@@ -110,6 +124,16 @@ class SuccessfulCommand extends AbstractCommand
             $this->registerRefund($entity, $order);
         }
         $this->deleteRefundJob($entity);
+    }
+
+    private function isDerecognizedInvoice(Refund $refund, Order $order)
+    {
+        $transactionInvoice = $this->transactionService->getTransactionInvoice($order);
+        if ($transactionInvoice->getState() == TransactionInvoiceState::DERECOGNIZED) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private function registerRefund(Refund $refund, Order $order)
@@ -166,7 +190,8 @@ class SuccessfulCommand extends AbstractCommand
                 case LineItemType::PRODUCT:
                     if ($reduction->getQuantityReduction() > 0) {
                         $refundQuantities[$orderItemMap[$reduction->getLineItemUniqueId()]->getId()] = $reduction->getQuantityReduction();
-                        $creditmemoAmount += $reduction->getQuantityReduction() * ($orderItemMap[$reduction->getLineItemUniqueId()]->getRowTotal() +
+                        $creditmemoAmount += $reduction->getQuantityReduction() *
+                            ($orderItemMap[$reduction->getLineItemUniqueId()]->getRowTotal() +
                             $orderItemMap[$reduction->getLineItemUniqueId()]->getTaxAmount() -
                             $orderItemMap[$reduction->getLineItemUniqueId()]->getDiscountAmount() +
                             $orderItemMap[$reduction->getLineItemUniqueId()]->getDiscountTaxCompensationAmount()) /

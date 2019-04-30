@@ -49,7 +49,8 @@ class CancelInvoice implements ObserverInterface
                     \__('The invoice cannot be cancelled as its capture has already been requested.'));
             }
 
-            if (! $order->getPostfinancecheckoutInvoiceAllowManipulation()) {
+            if (! $order->getPostfinancecheckoutInvoiceAllowManipulation() &&
+                ! $invoice->getPostfinancecheckoutDerecognized()) {
                 // The invoice can only be cancelled by the merchant if the transaction is in state 'AUTHORIZED'.
                 $transaction = $this->transactionService->getTransaction($order->getPostfinancecheckoutSpaceId(),
                     $order->getPostfinancecheckoutTransactionId());
