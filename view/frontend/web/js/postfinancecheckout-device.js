@@ -24,13 +24,13 @@ define([
 	return function(options){
 		var sessionIdentifier = $.mage.cookies.get('postfinancecheckout_device_id');
 		if (sessionIdentifier) {
-			loadScript(sessionIdentifier);
+			loadScript(options, sessionIdentifier);
 		} else {
 			$.getJSON(options.identifierUrl).fail(function (jqXHR) {
                 throw new Error(jqXHR);
             }).done(function(sessionIdentifier){
             	$.mage.cookies.set('postfinancecheckout_device_id', sessionIdentifier, { path: '/' });
-            	loadScript(sessionIdentifier);
+            	loadScript(options, sessionIdentifier);
             });
 		}
 		
