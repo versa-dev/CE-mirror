@@ -206,4 +206,7 @@
 	<type name="Magento\Sales\Model\AdminOrder\Create">
 		<plugin name="postfinancecheckout_payment_sales_adminorder_create" type="PostFinanceCheckout\Payment\Plugin\Sales\Model\AdminOrder\Create" />
 	</type>
+	<type name="Magento\Customer\Model\AccountManagement">
+		<plugin name="postfinancecheckout_payment_customer_accountmanagement" type="PostFinanceCheckout\Payment\Plugin\Customer\Model\AccountManagement" />
+	</type>
 </config>
