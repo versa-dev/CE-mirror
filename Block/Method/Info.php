@@ -222,6 +222,18 @@ class Info extends \Magento\Payment\Block\Info
     }
 
     /**
+     * Gets the URL to the customer detail view in PostFinance Checkout.
+     *
+     * @return string
+     */
+    public function getCustomerUrl()
+    {
+        return \rtrim($this->_scopeConfig->getValue('postfinancecheckout_payment/general/base_gateway_url'), '/') .
+        '/s/' . $this->getTransaction()->getSpaceId() . '/payment/customer/transaction/view/' .
+        $this->getTransaction()->getTransactionId();
+    }
+
+    /**
      * Gets the transaction info or false if not available.
      *
      * @return \PostFinanceCheckout\Payment\Model\TransactionInfo|false

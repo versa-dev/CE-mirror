@@ -31,7 +31,6 @@ use PostFinanceCheckout\Sdk\VersioningException;
 use PostFinanceCheckout\Sdk\Model\AbstractTransactionPending;
 use PostFinanceCheckout\Sdk\Model\AddressCreate;
 use PostFinanceCheckout\Sdk\Model\CriteriaOperator;
-use PostFinanceCheckout\Sdk\Model\CustomersPresence;
 use PostFinanceCheckout\Sdk\Model\EntityQuery;
 use PostFinanceCheckout\Sdk\Model\EntityQueryFilter;
 use PostFinanceCheckout\Sdk\Model\EntityQueryFilterType;
@@ -143,7 +142,7 @@ class TransactionService extends AbstractTransactionService
             try {
                 $transaction = $this->getTransaction($spaceId, $transactionId);
                 if (! ($transaction instanceof Transaction) || $transaction->getState() != TransactionState::PENDING) {
-                    return $this->createTransactionByOrder($order, $invoice, $chargeFlow, $token);
+                    throw new LocalizedException(\__('The order failed because the payment timed out.'));
                 }
 
                 $pendingTransaction = new TransactionPending();
@@ -156,27 +155,6 @@ class TransactionService extends AbstractTransactionService
             }
         }
         throw new VersioningException();
-    }
-
-    /**
-     * Creates a transaction for the given order.
-     *
-     * @param Order $order
-     * @param Invoice $invoice
-     * @param boolean $chargeFlow
-     * @param Token $token
-     * @return Transaction
-     */
-    protected function createTransactionByOrder(Order $order, Invoice $invoice, $chargeFlow = false, Token $token = null)
-    {
-        $createTransaction = new TransactionCreate();
-        $createTransaction->setCustomersPresence(CustomersPresence::VIRTUAL_PRESENT);
-        $createTransaction->setAutoConfirmationEnabled(false);
-        $this->assembleTransactionDataFromOrder($createTransaction, $order, $invoice, $chargeFlow, $token);
-        $transaction = $this->apiClient->getService(TransactionApiService::class)->create(
-            $order->getPostfinancecheckoutSpaceId(), $createTransaction);
-        $this->updateQuote($this->quoteRepository->get($order->getQuoteId()), $transaction);
-        return $transaction;
     }
 
     /**
