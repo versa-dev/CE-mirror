@@ -98,8 +98,14 @@ class InitializeCommand implements CommandInterface
         /** @var \Magento\Quote\Model\Quote $quote */
         $quote = $this->quoteRepository->get($order->getQuoteId());
 
-        if (!$quote->getPostfinancecheckoutSpaceId() || !$quote->getPostfinancecheckoutTransactionId()) {
+        if (! $quote->getPostfinancecheckoutSpaceId() || ! $quote->getPostfinancecheckoutTransactionId()) {
             throw new \InvalidArgumentException('The PostFinance Checkout payment transaction is not set on the quote.');
+        }
+
+        if ($order->getPostfinancecheckoutSpaceId() != null ||
+            $order->getPostfinancecheckoutTransactionId() != null) {
+            throw new \InvalidArgumentException(
+                'The PostFinance Checkout payment transaction has already been set on the order.');
         }
 
         $order->setPostfinancecheckoutSpaceId($quote->getPostfinancecheckoutSpaceId());

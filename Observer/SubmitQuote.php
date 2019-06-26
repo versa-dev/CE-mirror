@@ -13,8 +13,12 @@ namespace PostFinanceCheckout\Payment\Observer;
 use Magento\Framework\DB\TransactionFactory as DBTransactionFactory;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Invoice;
 use PostFinanceCheckout\Payment\Api\TransactionInfoManagementInterface;
+use PostFinanceCheckout\Payment\Api\TransactionInfoRepositoryInterface;
 use PostFinanceCheckout\Payment\Helper\Data as Helper;
 use PostFinanceCheckout\Payment\Model\ApiClient;
 use PostFinanceCheckout\Payment\Model\Service\Order\TransactionService;
@@ -26,6 +30,12 @@ use PostFinanceCheckout\Sdk\Service\ChargeFlowService;
  */
 class SubmitQuote implements ObserverInterface
 {
+
+    /**
+     *
+     * @var OrderRepositoryInterface
+     */
+    private $orderRepository;
 
     /**
      *
@@ -53,26 +63,37 @@ class SubmitQuote implements ObserverInterface
 
     /**
      *
+     * @var TransactionInfoRepositoryInterface
+     */
+    private $transactionInfoRepository;
+
+    /**
+     *
      * @var ApiClient
      */
     private $apiClient;
 
     /**
      *
+     * @param OrderRepositoryInterface $orderRepository
      * @param DBTransactionFactory $dbTransactionFactory
      * @param Helper $helper
      * @param TransactionService $transactionService
      * @param TransactionInfoManagementInterface $transactionInfoManagement
+     * @param TransactionInfoRepositoryInterface $transactionInfoRepository
      * @param ApiClient $apiClient
      */
-    public function __construct(DBTransactionFactory $dbTransactionFactory, Helper $helper,
-        TransactionService $transactionService, TransactionInfoManagementInterface $transactionInfoManagement,
-        ApiClient $apiClient)
+    public function __construct(OrderRepositoryInterface $orderRepository, DBTransactionFactory $dbTransactionFactory,
+        Helper $helper, TransactionService $transactionService,
+        TransactionInfoManagementInterface $transactionInfoManagement,
+        TransactionInfoRepositoryInterface $transactionInfoRepository, ApiClient $apiClient)
     {
+        $this->orderRepository = $orderRepository;
         $this->dbTransactionFactory = $dbTransactionFactory;
         $this->helper = $helper;
         $this->transactionService = $transactionService;
         $this->transactionInfoManagement = $transactionInfoManagement;
+        $this->transactionInfoRepository = $transactionInfoRepository;
         $this->apiClient = $apiClient;
     }
 
@@ -83,14 +104,19 @@ class SubmitQuote implements ObserverInterface
 
         $transactionId = $order->getPostfinancecheckoutTransactionId();
         if (! empty($transactionId)) {
-            $invoice = $this->createInvoice($order);
+            if (! $this->checkTransactionInfo($order)) {
+                $this->cancelOrder($order);
+                return;
+            }
 
             $transaction = $this->transactionService->getTransaction($order->getPostfinancecheckoutSpaceId(),
                 $order->getPostfinancecheckoutTransactionId());
             $this->transactionInfoManagement->update($transaction, $order);
 
-            $transaction = $this->transactionService->confirmTransaction($transaction, $order, $invoice, $this->helper->isAdminArea(),
-                $order->getPostfinancecheckoutToken());
+            $invoice = $this->createInvoice($order);
+
+            $transaction = $this->transactionService->confirmTransaction($transaction, $order, $invoice,
+                $this->helper->isAdminArea(), $order->getPostfinancecheckoutToken());
             $this->transactionInfoManagement->update($transaction, $order);
         }
 
@@ -107,6 +133,25 @@ class SubmitQuote implements ObserverInterface
                     ], 3);
             }
         }
+    }
+
+    /**
+     * Checks whether the transaction info for the transaction linked to the order is already linked to another order.
+     *
+     * @param Order $order
+     * @return boolean
+     */
+    private function checkTransactionInfo(Order $order)
+    {
+        try {
+            $info = $this->transactionInfoRepository->getByTransactionId($order->getPostfinancecheckoutSpaceId(),
+                $order->getPostfinancecheckoutTransactionId());
+
+            if ($info->getOrderId() != $order->getId()) {
+                return false;
+            }
+        } catch (NoSuchEntityException $e) {}
+        return true;
     }
 
     /**
@@ -129,5 +174,41 @@ class SubmitQuote implements ObserverInterface
             ->addObject($invoice)
             ->save();
         return $invoice;
+    }
+
+    /**
+     * Cancels the given order and invoice linked to the transaction.
+     *
+     * @param Order $order
+     */
+    private function cancelOrder(Order $order)
+    {
+        $invoice = $this->getInvoiceForTransaction($order);
+        if ($invoice) {
+            $order->setPostfinancecheckoutInvoiceAllowManipulation(true);
+            $invoice->cancel();
+            $order->addRelatedObject($invoice);
+        }
+        $order->registerCancellation(null, false);
+        $this->orderRepository->save($order);
+    }
+
+    /**
+     * Gets the invoice linked to the given transaction.
+     *
+     * @param Order $order
+     * @return Invoice
+     */
+    private function getInvoiceForTransaction(Order $order)
+    {
+        foreach ($order->getInvoiceCollection() as $invoice) {
+            /** @var Invoice $invoice */
+            if (\strpos($invoice->getTransactionId(),
+                $order->getPostfinancecheckoutSpaceId() . '_' . $order->getPostfinancecheckoutTransactionId()) ===
+                0 && $invoice->getState() != Invoice::STATE_CANCELED) {
+                $invoice->load($invoice->getId());
+                return $invoice;
+            }
+        }
     }
 }
