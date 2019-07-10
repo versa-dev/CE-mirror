@@ -10,7 +10,6 @@
  */
 namespace PostFinanceCheckout\Payment\Model\Service;
 
-use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerRegistry;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -18,7 +17,6 @@ use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Quote\Api\CartRepositoryInterface;
 use Magento\Quote\Model\Quote;
-use Magento\Store\Model\ScopeInterface;
 use PostFinanceCheckout\Payment\Api\PaymentMethodConfigurationManagementInterface;
 use PostFinanceCheckout\Payment\Helper\Data as Helper;
 use PostFinanceCheckout\Payment\Model\ApiClient;
@@ -243,30 +241,6 @@ abstract class AbstractTransactionService
 
         if ($dateOfBirth !== null) {
             return \substr($dateOfBirth, 0, 10);
-        }
-    }
-
-    /**
-     * Collects the data that is to be transmitted to the gateway as transaction meta data.
-     *
-     * @param Customer $customer
-     * @return array
-     */
-    protected function collectCustomerMetaData(Customer $customer)
-    {
-        $attributeCodesConfig = $this->scopeConfig->getValue(
-            'postfinancecheckout_payment/meta_data/customer_attributes', ScopeInterface::SCOPE_STORE,
-            $customer->getStoreId());
-        if (! empty($attributeCodesConfig)) {
-            $metaData = [];
-            $attributeCodes = \explode(',', $attributeCodesConfig);
-            foreach ($attributeCodes as $attributeCode) {
-                $value = $customer->getData($attributeCode);
-                if ($value !== null && $value !== "" && $value !== false) {
-                    $metaData['customer_' . $attributeCode] = $value;
-                }
-            }
-            return $metaData;
         }
     }
 }
