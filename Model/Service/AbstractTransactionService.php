@@ -2,7 +2,7 @@
 /**
  * PostFinance Checkout Magento 2
  *
- * This Magento 2 extension enables to process payments with PostFinance Checkout (https://www.postfinance.ch/).
+ * This Magento 2 extension enables to process payments with PostFinance Checkout (https://www.postfinance.ch/checkout/).
  *
  * @package PostFinanceCheckout_Payment
  * @author customweb GmbH (http://www.customweb.com/)
@@ -194,7 +194,7 @@ abstract class AbstractTransactionService
             $gender = $this->customerRegistry->retrieve($customerId)->getGender();
         }
 
-        if ($gender == 1) {
+        if ($gender == 2) {
             return Gender::FEMALE;
         } elseif ($gender == 1) {
             return Gender::MALE;

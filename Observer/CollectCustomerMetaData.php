@@ -2,7 +2,7 @@
 /**
  * PostFinance Checkout Magento 2
  *
- * This Magento 2 extension enables to process payments with PostFinance Checkout (https://www.postfinance.ch/).
+ * This Magento 2 extension enables to process payments with PostFinance Checkout (https://www.postfinance.ch/checkout/).
  *
  * @package PostFinanceCheckout_Payment
  * @author customweb GmbH (http://www.customweb.com/)
@@ -52,9 +52,11 @@ class CollectCustomerMetaData implements ObserverInterface
         $order = $observer->getOrder();
         $transport = $observer->getTransport();
 
-        $transport->setData('metaData',
-            \array_merge($transport->getData('metaData'),
-                $this->collectCustomerMetaData($this->customerRegistry->retrieve($order->getCustomerId()))));
+        if (! empty($order->getCustomerId())) {
+            $transport->setData('metaData',
+                \array_merge($transport->getData('metaData'),
+                    $this->collectCustomerMetaData($this->customerRegistry->retrieve($order->getCustomerId()))));
+        }
     }
 
     /**
