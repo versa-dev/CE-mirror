@@ -33,7 +33,8 @@ class LabelDescriptorProvider extends AbstractProvider
      */
     public function __construct(FrontendInterface $cache, ApiClient $apiClient)
     {
-        parent::__construct($cache, 'postfinancecheckout_payment_label_descriptors');
+        parent::__construct($cache, 'postfinancecheckout_payment_label_descriptors',
+            \PostFinanceCheckout\Sdk\Model\LabelDescriptor::class);
         $this->apiClient = $apiClient;
     }
 

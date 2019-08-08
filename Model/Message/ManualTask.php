@@ -51,7 +51,7 @@ class ManualTask implements MessageInterface
 
     public function getIdentity()
     {
-        return \md5('PFC_MANUAL_TASK');
+        return 'pfc_manual_task';
     }
 
     public function getText()

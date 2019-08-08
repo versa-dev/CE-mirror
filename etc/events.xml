@@ -26,6 +26,15 @@
 		<observer name="postfinancecheckout_payment_collect_order_attribute_meta_data" instance="PostFinanceCheckout\Payment\Observer\CollectOrderAttributeMetaData" />
 	</event>
 	
+	<event name="postfinancecheckout_payment_convert_line_items">
+		<observer name="postfinancecheckout_payment_convert_line_items_fooman_surcharge" instance="PostFinanceCheckout\Payment\Observer\CollectFoomanSurchargeLineItems" />
+		<observer name="postfinancecheckout_payment_convert_line_items_amasty_checkout" instance="PostFinanceCheckout\Payment\Observer\CollectAmastyCheckoutLineItems" />
+	</event>
+	
+	<event name="postfinancecheckout_payment_convert_line_item_reductions">
+		<observer name="postfinancecheckout_payment_convert_line_item_reductions_fooman_surcharge" instance="PostFinanceCheckout\Payment\Observer\CollectFoomanSurchargeLineItemReductions" />
+	</event>
+	
 	<event name="sales_order_payment_capture">
 		<observer name="postfinancecheckout_payment_payment_capture" instance="PostFinanceCheckout\Payment\Observer\CapturePayment" />
 	</event>
