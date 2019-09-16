@@ -30,6 +30,7 @@ use PostFinanceCheckout\Payment\Api\TransactionInfoRepositoryInterface;
 use PostFinanceCheckout\Payment\Helper\Data as Helper;
 use PostFinanceCheckout\Payment\Helper\LineItem as LineItemHelper;
 use PostFinanceCheckout\Payment\Model\ApiClient;
+use PostFinanceCheckout\Payment\Model\CustomerIdManipulationException;
 use PostFinanceCheckout\Payment\Model\Service\AbstractTransactionService;
 use PostFinanceCheckout\Sdk\VersioningException;
 use PostFinanceCheckout\Sdk\Model\AbstractTransactionPending;
@@ -176,6 +177,10 @@ class TransactionService extends AbstractTransactionService
                         $transaction->getState() != TransactionState::PENDING) {
                         throw new LocalizedException(\__('The order failed because the payment timed out.'));
                     }
+                }
+
+                if (! empty($transaction->getCustomerId()) && $transaction->getCustomerId() != $order->getCustomerId()) {
+                    throw new CustomerIdManipulationException();
                 }
 
                 $pendingTransaction = new TransactionPending();
