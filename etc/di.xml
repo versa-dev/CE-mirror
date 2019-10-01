@@ -214,6 +214,9 @@
 	<type name="Magento\Customer\Model\AccountManagement">
 		<plugin name="postfinancecheckout_payment_customer_accountmanagement" type="PostFinanceCheckout\Payment\Plugin\Customer\Model\AccountManagement" />
 	</type>
+	<type name="Magento\Sales\Model\ResourceModel\Order\Handler\State">
+		<plugin name="postfinancecheckout_payment_sales_order_handler_state" type="PostFinanceCheckout\Payment\Plugin\Sales\Model\ResourceModel\Order\Handler\State" />
+	</type>
 	
 	<!-- Console Commands -->
 	<type name="Magento\Framework\Console\CommandListInterface">
