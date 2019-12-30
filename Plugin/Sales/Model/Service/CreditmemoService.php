@@ -20,6 +20,7 @@ use PostFinanceCheckout\Payment\Api\Data\RefundJobInterface;
 use PostFinanceCheckout\Payment\Model\ApiClient;
 use PostFinanceCheckout\Payment\Model\RefundJobFactory;
 use PostFinanceCheckout\Payment\Model\Payment\Method\Adapter as PaymentMethodAdapter;
+use PostFinanceCheckout\Payment\Model\Service\LineItemReductionException;
 use PostFinanceCheckout\Payment\Model\Service\LineItemReductionService;
 use PostFinanceCheckout\Sdk\Model\RefundCreate;
 use PostFinanceCheckout\Sdk\Model\RefundType;
@@ -168,7 +169,14 @@ class CreditmemoService
     {
         $refund = new RefundCreate();
         $refund->setExternalId(\uniqid($creditmemo->getOrderId() . '-'));
-        $refund->setReductions($this->lineItemReductionService->convertCreditmemo($creditmemo));
+
+        try {
+            $reductions = $this->lineItemReductionService->convertCreditmemo($creditmemo);
+            $refund->setReductions($reductions);
+        } catch (LineItemReductionException $e) {
+            $refund->setAmount($creditmemo->getGrandTotal());
+        }
+
         $refund->setTransaction($creditmemo->getOrder()
             ->getPostfinancecheckoutTransactionId());
         $refund->setType(RefundType::MERCHANT_INITIATED_ONLINE);
