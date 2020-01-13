@@ -23,6 +23,11 @@ define([
 		$.getScript(window.checkoutConfig.postfinancecheckout.javascriptUrl);
 	}
 	
+	// Loads the PostFinance Checkout Lightbox File
+	if (window.checkoutConfig.postfinancecheckout.lightboxUrl) {
+		$.getScript(window.checkoutConfig.postfinancecheckout.lightboxUrl);
+	}
+	
 	// Registers the PostFinance Checkout payment methods
 	$.each(window.checkoutConfig.payment, function(code){
 		if (code.indexOf('postfinancecheckout_payment_') === 0) {

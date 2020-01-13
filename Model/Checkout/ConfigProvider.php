@@ -13,11 +13,14 @@ namespace PostFinanceCheckout\Payment\Model\Checkout;
 use Magento\Checkout\Model\ConfigProviderInterface;
 use Magento\Checkout\Model\Session as CheckoutSession;
 use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Payment\Helper\Data as PaymentHelper;
+use Magento\Store\Model\ScopeInterface;
 use Psr\Log\LoggerInterface;
 use PostFinanceCheckout\Payment\Api\PaymentMethodConfigurationRepositoryInterface;
 use PostFinanceCheckout\Payment\Api\Data\PaymentMethodConfigurationInterface;
 use PostFinanceCheckout\Payment\Model\PaymentMethodConfiguration;
+use PostFinanceCheckout\Payment\Model\Config\Source\IntegrationMethod;
 use PostFinanceCheckout\Payment\Model\Payment\Method\Adapter;
 use PostFinanceCheckout\Payment\Model\Service\Quote\TransactionService;
 
@@ -53,6 +56,12 @@ class ConfigProvider implements ConfigProviderInterface
 
     /**
      *
+     * @var ScopeConfigInterface
+     */
+    private $scopeConfig;
+
+    /**
+     *
      * @var LoggerInterface
      */
     private $logger;
@@ -69,17 +78,19 @@ class ConfigProvider implements ConfigProviderInterface
      * @param TransactionService $transactionService
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param CheckoutSession $checkoutSession
+     * @param ScopeConfigInterface $scopeConfig
      * @param LoggerInterface $logger
      * @param PaymentHelper $paymentHelper
      */
     public function __construct(PaymentMethodConfigurationRepositoryInterface $paymentMethodConfigurationRepository,
         TransactionService $transactionService, SearchCriteriaBuilder $searchCriteriaBuilder,
-        CheckoutSession $checkoutSession, LoggerInterface $logger, PaymentHelper $paymentHelper)
+        CheckoutSession $checkoutSession, ScopeConfigInterface $scopeConfig, LoggerInterface $logger, PaymentHelper $paymentHelper)
     {
         $this->paymentMethodConfigurationRepository = $paymentMethodConfigurationRepository;
         $this->transactionService = $transactionService;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->checkoutSession = $checkoutSession;
+        $this->scopeConfig = $scopeConfig;
         $this->logger = $logger;
         $this->paymentHelper = $paymentHelper;
     }
@@ -95,10 +106,23 @@ class ConfigProvider implements ConfigProviderInterface
         $quote = $this->checkoutSession->getQuote();
         // Make sure that the quote's totals are collected before generating javascript and payment page URLs.
         $quote->collectTotals();
-        try {
-            $config['postfinancecheckout']['javascriptUrl'] = $this->transactionService->getJavaScriptUrl($quote);
-        } catch (\Exception $e) {
-            $this->logger->critical($e);
+
+        $integrationMethod = $this->scopeConfig->getValue('postfinancecheckout_payment/checkout/integration_method',
+            ScopeInterface::SCOPE_STORE, $quote->getStoreId());
+        $config['postfinancecheckout']['integrationMethod'] = $integrationMethod;
+
+        if ($integrationMethod == IntegrationMethod::IFRAME) {
+            try {
+                $config['postfinancecheckout']['javascriptUrl'] = $this->transactionService->getJavaScriptUrl($quote);
+            } catch (\Exception $e) {
+                $this->logger->critical($e);
+            }
+        } else {
+            try {
+                $config['postfinancecheckout']['lightboxUrl'] = $this->transactionService->getLightboxUrl($quote);
+            } catch (\Exception $e) {
+                $this->logger->critical($e);
+            }
         }
 
         try {

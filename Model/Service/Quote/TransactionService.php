@@ -23,6 +23,7 @@ use Magento\Store\Model\ScopeInterface;
 use PostFinanceCheckout\Payment\Api\PaymentMethodConfigurationManagementInterface;
 use PostFinanceCheckout\Payment\Helper\Data as Helper;
 use PostFinanceCheckout\Payment\Model\ApiClient;
+use PostFinanceCheckout\Payment\Model\CustomerIdManipulationException;
 use PostFinanceCheckout\Payment\Model\Service\AbstractTransactionService;
 use PostFinanceCheckout\Sdk\ApiException;
 use PostFinanceCheckout\Sdk\VersioningException;
@@ -33,9 +34,10 @@ use PostFinanceCheckout\Sdk\Model\Transaction;
 use PostFinanceCheckout\Sdk\Model\TransactionCreate;
 use PostFinanceCheckout\Sdk\Model\TransactionPending;
 use PostFinanceCheckout\Sdk\Model\TransactionState;
-use PostFinanceCheckout\Sdk\Service\TransactionService as TransactionApiService;
 use PostFinanceCheckout\Sdk\Service\TransactionIframeService;
+use PostFinanceCheckout\Sdk\Service\TransactionLightboxService;
 use PostFinanceCheckout\Sdk\Service\TransactionPaymentPageService;
+use PostFinanceCheckout\Sdk\Service\TransactionService as TransactionApiService;
 
 /**
  * Service to handle transactions in quote context.
@@ -127,7 +129,7 @@ class TransactionService extends AbstractTransactionService
     }
 
     /**
-     * Gets the URL to the JavaScript library that is required to display the payment form.
+     * Gets the URL to the JavaScript library that is required to display the iframe payment form.
      *
      * @param Quote $quote
      * @return string
@@ -136,6 +138,19 @@ class TransactionService extends AbstractTransactionService
     {
         $transaction = $this->getTransactionByQuote($quote);
         return $this->apiClient->getService(TransactionIframeService::class)->javascriptUrl(
+            $transaction->getLinkedSpaceId(), $transaction->getId());
+    }
+
+    /**
+     * Gets the URL to the JavaScript library that is required to display the lightbox payment form.
+     *
+     * @param Quote $quote
+     * @return string
+     */
+    public function getLightboxUrl(Quote $quote)
+    {
+        $transaction = $this->getTransactionByQuote($quote);
+        return $this->apiClient->getService(TransactionLightboxService::class)->javascriptUrl(
             $transaction->getLinkedSpaceId(), $transaction->getId());
     }
 
@@ -185,9 +200,6 @@ class TransactionService extends AbstractTransactionService
      */
     public function isPaymentMethodAvailable(Quote $quote, $paymentMethodConfigurationId)
     {
-        if ($this->submittingOrder) {
-            return true;
-        }
         $possiblePaymentMethods = $this->getPossiblePaymentMethods($quote);
         foreach ($possiblePaymentMethods as $possiblePaymentMethod) {
             if ($possiblePaymentMethod->getId() == $paymentMethodConfigurationId) {
@@ -258,7 +270,11 @@ class TransactionService extends AbstractTransactionService
                 }
 
                 if (! empty($transaction->getCustomerId()) && $transaction->getCustomerId() != $quote->getCustomerId()) {
-                    return $this->createTransactionByQuote($quote);
+                    if ($this->submittingOrder) {
+                        throw new CustomerIdManipulationException();
+                    } else {
+                        return $this->createTransactionByQuote($quote);
+                    }
                 }
 
                 $pendingTransaction = new TransactionPending();
