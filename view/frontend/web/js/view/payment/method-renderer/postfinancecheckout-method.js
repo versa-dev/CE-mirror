@@ -182,6 +182,8 @@ define([
 		afterPlaceOrder: function(){
 			var self = this;
 			
+			fullScreenLoader.startLoader();
+			
 			if (window.checkoutConfig.postfinancecheckout.integrationMethod == 'iframe' && this.handler) {
 				this.handler.submit();
 			} else if (window.checkoutConfig.postfinancecheckout.integrationMethod == 'lightbox' && typeof window.LightboxCheckoutHandler != 'undefined') {
