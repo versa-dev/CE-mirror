@@ -16,12 +16,12 @@
 										<div class="layout-navigation">
 					<ul class="nav">
 	<li>
-		<a href="https://www.postfinance-checkout.ch/user/signup">
+		<a href="https://checkout.postfinance.ch/user/signup">
 			Sign Up
 		</a>
 	</li>
 	<li>
-		<a href="https://github.com/pfpayments/magento-2.3/releases/tag/1.0.75/">
+		<a href="https://github.com/pfpayments/magento-2.3/releases/tag/1.0.76/">
 			Source
 		</a>
 	</li>
@@ -104,7 +104,7 @@
 					<div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Navigate to Stores &#8594; Configuration &#8594; Sales &#8594; PostFinance Checkout Payment in your Magento backend and in the section <em>General</em> enter the PostFinance Checkout User ID and Authentification Key that you can create in the <a href="https://www.postfinance-checkout.ch/space/select?target=/space/assistant" target="_blank">setup assistant</a>. Alternatively, you can manually create an <a href="https://www.postfinance-checkout.ch/en-us/doc/permission-concept#_create_application_users" target="_blank">application user</a>.</p>
+<p>Navigate to Stores &#8594; Configuration &#8594; Sales &#8594; PostFinance Checkout Payment in your Magento backend and in the section <em>General</em> enter the PostFinance Checkout User ID and Authentification Key that you can create in the <a href="https://checkout.postfinance.ch/space/select?target=/space/assistant" target="_blank">setup assistant</a>. Alternatively, you can manually create an <a href="https://checkout.postfinance.ch/en-us/doc/permission-concept#_create_application_users" target="_blank">application user</a>.</p>
 <div class="imageblock">
 <div class="content">
 <img src="resource/application-user-configuration.png" alt="application user configuration"/>
@@ -183,7 +183,7 @@ This setting implies that the plugin is collecting wrong data (e.g. VAT) which m
 <img src="resource/payment-method-configuration.png" alt="payment method configuration"/>
 </div>
 </div><div class="paragraph">
-<p>Additional payment methods are directly added in PostFinance Checkout. This can be done in the <a href="https://www.postfinance-checkout.ch/space/select?target=/space/assistant/payment" target="_blank">setup assistant</a>. Changes are synchronized automatically.</p>
+<p>Additional payment methods are directly added in PostFinance Checkout. This can be done in the <a href="https://checkout.postfinance.ch/space/select?target=/space/assistant/payment" target="_blank">setup assistant</a>. Changes are synchronized automatically.</p>
 </div>					</div>
 </div>					<div class="section" id="_customization">
 	<div class="section-title">
@@ -192,7 +192,7 @@ This setting implies that the plugin is collecting wrong data (e.g. VAT) which m
 	</div>
 	<div class="section-body">
 					<div class="paragraph">
-<p>If you want to change the payment method description, title, logo, etc you need to do this in the <a href="https://www.postfinance-checkout.ch/space/select?target=/payment/method-configuration/list" target="_blank">payment method configuration</a>. Changes will be synchronized automatically.</p>
+<p>If you want to change the payment method description, title, logo, etc you need to do this in the <a href="https://checkout.postfinance.ch/space/select?target=/payment/method-configuration/list" target="_blank">payment method configuration</a>. Changes will be synchronized automatically.</p>
 </div>					</div>
 </div>					<div class="section" id="_state_mapping_of_magento_orders">
 	<div class="section-title">
@@ -271,7 +271,7 @@ Magento. However, there are some limitations (see below).</p>
 	</div>
 	<div class="section-body">
 					<div class="paragraph">
-<p>You have the possibility for your transactions to have the invoice created and the payment only authorized after the order is placed. Inside the <a href="https://www.postfinance-checkout.ch/space/select?target=/payment/connector-configuration/list" target="_blank">connector configuration</a> you have the option, if the payment method supports it, to define whether the payment should be completed immediately or deferred.</p>
+<p>You have the possibility for your transactions to have the invoice created and the payment only authorized after the order is placed. Inside the <a href="https://checkout.postfinance.ch/space/select?target=/payment/connector-configuration/list" target="_blank">connector configuration</a> you have the option, if the payment method supports it, to define whether the payment should be completed immediately or deferred.</p>
 </div><div class="paragraph">
 <p>In order to capture a transaction, open the invoice and click on <code>capture</code>.</p>
 </div><div class="admonitionblock note">
@@ -370,7 +370,7 @@ When there is a manual task we will also display it in the Magento Backend.</p>
 </li>
 </ul>
 </div><div class="paragraph">
-<p>You can find more information about manual tasks in our <a href="https://www.postfinance-checkout.ch/en-us/doc/manual-tasks" target="_blank">Manual Task Documentation</a>.</p>
+<p>You can find more information about manual tasks in our <a href="https://checkout.postfinance.ch/en-us/doc/manual-tasks" target="_blank">Manual Task Documentation</a>.</p>
 </div>					</div>
 </div>					<div class="section" id="_limitations_of_the_synchronization_between_whitelabelname_and_magento">
 	<div class="section-title">
@@ -386,7 +386,7 @@ perform the refunds always inside the Magento backend and not inside PostFinance
 cannot be synchronized it will be sent to the processor but it could be that you do not see it inside
 your Magento backend.</p>
 </div><div class="paragraph">
-<p>You can find more information about Refunds in PostFinance Checkout in our <a href="https://www.postfinance-checkout.ch/en-us/doc/payment/refund" target="_blank">Refund Documentation</a>.</p>
+<p>You can find more information about Refunds in PostFinance Checkout in our <a href="https://checkout.postfinance.ch/en-us/doc/payment/refund" target="_blank">Refund Documentation</a>.</p>
 </div>					</div>
 </div>					<div class="section" id="_tokenization">
 	<div class="section-title">
@@ -396,7 +396,7 @@ your Magento backend.</p>
 	<div class="section-body">
 					<div class="paragraph">
 <p>In case the payment method supports tokenization you can store the payment details of your customer for future purchases.
-In order to use this feature make sure that the <strong>One-Click-Payment Mode</strong> in your <a href="https://www.postfinance-checkout.ch/space/select?target=/payment/method-configuration/list">payment method configuration</a> is set to <code>allow</code> or <code>force</code> storage.</p>
+In order to use this feature make sure that the <strong>One-Click-Payment Mode</strong> in your <a href="https://checkout.postfinance.ch/space/select?target=/payment/method-configuration/list">payment method configuration</a> is set to <code>allow</code> or <code>force</code> storage.</p>
 </div><div class="admonitionblock note">
 <table>
 <tr>
@@ -419,17 +419,17 @@ Tokenization is not available for guest checkouts.
 					<div class="paragraph">
 <p>You can create orders inside Magento also from the Magento Backend. If you create the transaction
 from the backend and select a payment method created by PostFinance Checkout then we are using the
-<a href="https://www.postfinance-checkout.ch/en-us/doc/payment/charge-flows" target="_blank">Charge Flow</a> Feature of PostFinance Checkout.
+<a href="https://checkout.postfinance.ch/en-us/doc/payment/charge-flows" target="_blank">Charge Flow</a> Feature of PostFinance Checkout.
 This means that we first check if the payment method allows to
 charge the customer without customer interaction (i. e. invoice). If not and you did not
 select from the dropdown to use a token with stored payment information we are going to trigger
-the <a href="https://www.postfinance-checkout.ch/space/select?target=/payment/flow/list" target="_blank">charge flow process</a> you configured to ask the buyer for the payment details.</p>
+the <a href="https://checkout.postfinance.ch/space/select?target=/payment/flow/list" target="_blank">charge flow process</a> you configured to ask the buyer for the payment details.</p>
 </div><div class="imageblock">
 <div class="content">
 <img src="resource/moto-token.png" alt="moto token"/>
 </div>
 </div><div class="paragraph">
-<p>You can find more information about charge flows in our <a href="https://www.postfinance-checkout.ch/en-us/doc/payment/charge-flows" target="_blank">charge flow documentation</a>.</p>
+<p>You can find more information about charge flows in our <a href="https://checkout.postfinance.ch/en-us/doc/payment/charge-flows" target="_blank">charge flow documentation</a>.</p>
 </div>					</div>
 </div>	<div class="chapter" id="_faq">
 	<div class="chapter-title">
